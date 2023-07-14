@@ -1,6 +1,5 @@
 package ch.clip.security6.simple.taskmanager.security.model;
 
-
 import ch.clip.security6.simple.taskmanager.security.JwtTokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,10 +22,9 @@ public class UserController {
 
     private final TaskRepository taskRepository;
 
-
     @Autowired
     public UserController(UserRepository userRepository, TaskRepository taskRepository,
-                          BCryptPasswordEncoder bCryptPasswordEncoder) {
+            BCryptPasswordEncoder bCryptPasswordEncoder) {
         super();
         this.userRepository = userRepository;
         this.taskRepository = taskRepository;
@@ -36,24 +35,11 @@ public class UserController {
     // User endpoints
     @PostMapping("/sign-up")
     public void signUp(@RequestBody TasksUser user) {
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        String salt = BCrypt.gensalt();
+        user.setSalt(salt);
+        user.setPassword(BCrypt.hashpw(user.getPassword(),salt));
+        user.setRole("member");
         userRepository.save(user);
-    }
-
-
-
-    @PostMapping("/register")
-    public ResponseEntity<?>  createUser (@RequestBody TasksUser user) {
-        if (userRepository.findById(user.getId()).isPresent()) {
-            return ResponseEntity
-                    .badRequest()
-                    .body("User already exists");
-        } else {
-            return ResponseEntity
-                    .status(HttpStatus.OK)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(userRepository.save(user));
-        }
     }
 
     @GetMapping
@@ -62,7 +48,6 @@ public class UserController {
                 .status(HttpStatus.OK)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(userRepository.findAll());
-
 
     }
 
@@ -80,25 +65,22 @@ public class UserController {
                     .build(); // http 404
         }
 
-
     }
-
 
     // Tasks Endpoint
     @PostMapping("/{userId}/tasks")
     public ResponseEntity<Task> createUserTask(@PathVariable Long userId, @RequestBody Task task) {
 
-         if  (userRepository.findById(userId).isPresent()) {
-             TasksUser user = userRepository.findById(userId).get();
+        if (userRepository.findById(userId).isPresent()) {
+            TasksUser user = userRepository.findById(userId).get();
             return ResponseEntity
                     .status(HttpStatus.OK)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(taskRepository.save(task, user));
 
-         } else {
-               return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.notFound().build();
         }
-
 
     }
 
@@ -117,5 +99,3 @@ public class UserController {
 
     }
 }
-
-

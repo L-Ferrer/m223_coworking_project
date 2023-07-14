@@ -1,5 +1,7 @@
 package ch.clip.security6.simple.taskmanager.security.model;
 
+import java.util.Date;
+
 import ch.clip.security6.simple.taskmanager.security.model.TasksUser;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -16,6 +18,7 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String description;
+    private Date date;
 
     @ManyToOne
     @JoinColumn(name="user_id")
@@ -25,9 +28,13 @@ public class Task {
     public Task(TasksUser user, String description) {
         this.user = user;
         this.description = description;
+        this.date = new Date();
     }
     public Task(String description) {
         this.description = description;
     }
 
+    public Date getDate() {
+        return date;
+    }
 }

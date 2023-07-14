@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -125,6 +126,22 @@ public class TaskController {
 
         // Pass the username to the task service
         List<Task> tasks = taskRepository.findTasksByUserId(tasksUser.getId());
+
+        return ResponseEntity.ok(tasks);
+    }
+
+    @GetMapping("/date")
+    public ResponseEntity<List<Task>> getTasksByDate() {
+        Date d = new Date();
+        long currentDate = d.getTime();
+        List<Task> tasks = taskRepository.findAll();
+        List<Task> tasksByDate = null;
+
+        for (Task task : tasks) {
+            if (!(task.getDate().getTime() > (currentDate - 86400000)) && !(task.getDate().getTime() < (currentDate+86400000)) ) {
+                tasksByDate.add(task);
+            }
+        }
 
         return ResponseEntity.ok(tasks);
     }

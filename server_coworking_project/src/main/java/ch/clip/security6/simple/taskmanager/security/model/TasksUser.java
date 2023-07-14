@@ -56,4 +56,11 @@ public class TasksUser implements Serializable {
 		this.role = TasksUserRoles.MEMBER;
 	}
 
+	public boolean checkAdmin(TasksUser user){
+        if(user.getRole().equals("admin")){
+         return true;
+        }else{
+            return false;
+        }
+    }
 }
